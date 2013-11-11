@@ -33,7 +33,8 @@
         return false;
       },
       leftView: function () {
-        Mousetrap.unbind(null, this.doAction);
+        var keys = this.key.split(",");
+        Mousetrap.unbind(keys, this.doAction);
       }
     });
 

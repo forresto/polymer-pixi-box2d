@@ -153,8 +153,8 @@
         var b = fixtureB.GetBody();
 
         if (a && b && a.el && b.el) {
-          a.el.fire("collision", b.el);
-          b.el.fire("collision", a.el);
+          a.el.fire("collide", b.el);
+          b.el.fire("collide", a.el);
         }
       },
       sizeChanged: function () {

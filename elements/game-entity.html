@@ -70,7 +70,7 @@
         this.width2 = Math.floor(this.width/2);
         this.height2 = Math.floor(this.height/2);
         // Test collision listener
-        // this.addEventListener("collision", function(event){
+        // this.addEventListener("collide", function(event){
         //   console.log(this.id, "hit", event.detail.id);
         // }.bind(this));
       },
@@ -116,8 +116,8 @@
           this.world.removeEntity(this);
         }
         // Remove from physics world
-        if (this.world && this.physics) {
-          this.world.DestroyBody( this.physics );
+        if (this.world && this.world.physics && this.physics) {
+          this.world.physics.DestroyBody( this.physics );
         }
         // Remove from renderer
         if (this.sprite && this.sprite.parent) { 
@@ -208,11 +208,11 @@
         if (!this.physics) { return; }
         // var angle = this.physics.GetAngle();
         // this.physics.ApplyLinearImpulse( new b2Vec2(Math.cos(angle)*amount, Math.sin(angle)*amount), this.physics.GetWorldCenter() );
-        this.physics.ApplyLinearImpulse( new b2Vec2(0, amount/PPM), this.physics.GetWorldCenter() );
+        this.physics.ApplyLinearImpulse( new b2Vec2(0, amount), this.physics.GetWorldCenter() );
       },
       impulseX: function (amount) {
         if (!this.physics) { return; }
-        this.physics.ApplyLinearImpulse( new b2Vec2(amount/PPM, 0), this.physics.GetWorldCenter() );
+        this.physics.ApplyLinearImpulse( new b2Vec2(amount, 0), this.physics.GetWorldCenter() );
       },
       impulseAngle: function (amount) {
         if (!this.physics) { return; }

@@ -28,8 +28,12 @@
         fixed: means that the floor will stay put 
         dom: render html instead of pixi webgl for this element 
         tile: tile the texture image 
+        x & y: centered
       -->
       <game-entity id="floor" fixed x="400" y="600" width="600" height="50" restitution="0.5" texture="elements/bunny.png" tile dom></game-entity>
+
+      <!-- bunnies disappear when they touch this one -->
+      <game-entity id="underworld" fixed x="400" y="800" width="2000" height="50" restitution="0.5"></game-entity>
 
       <!-- yvelocity: start moving up -->
       <game-entity id="character1" circle x="400" y="100" width="15" height="15" xvelocity="0" yvelocity="-200" rotation="0.7" texture="elements/bunny.png"></game-entity>
@@ -45,10 +49,10 @@
           attribute: if a function, call it with amount
               otherwise, setAttribute(attribute, amount) 
         -->
-        <game-keybinding press="keydown" key="w,up"    attribute="impulseY" amount="-2000"></game-keybinding>
-        <game-keybinding press="keydown" key="s,down"  attribute="impulseY" amount="2000"></game-keybinding>
-        <game-keybinding press="keydown" key="a,left"  attribute="impulseX" amount="-2000"></game-keybinding>
-        <game-keybinding press="keydown" key="d,right" attribute="impulseX" amount="2000"></game-keybinding>
+        <game-keybinding press="keydown" key="w,up"    attribute="impulseY" amount="-200"></game-keybinding>
+        <game-keybinding press="keydown" key="s,down"  attribute="impulseY" amount="200"></game-keybinding>
+        <game-keybinding press="keydown" key="a,left"  attribute="impulseX" amount="-200"></game-keybinding>
+        <game-keybinding press="keydown" key="d,right" attribute="impulseX" amount="200"></game-keybinding>
         <!--
         <game-keybinding press="keydown" key="a,left"  attribute="impulseAngle" amount="-10"></game-keybinding>
         <game-keybinding press="keydown" key="d,right" attribute="impulseAngle" amount="10"></game-keybinding>
@@ -76,6 +80,15 @@
             clearInterval(rainBunnies);
           }
         },100);
+
+        // When bunnies fall, remove them from the scene
+        var underworld = document.getElementById("underworld");
+        underworld.addEventListener("collide", function (event) {
+          var other = event.detail;
+          if (other && other.parentNode) {
+            other.parentNode.removeChild(other);
+          }
+        });
 
       });
     </script>
