@@ -4,7 +4,7 @@
   "authors": [
     "Forrest Oliphant <forrest@sembiki.com>"
   ],
-  "description": "A simple game library to use polymer custom elements as a scene graph with pixi.js rendering and asm box2d.js for physics",
+  "description": "A simple game demo using Polymer custom elements as a scene graph with Pixi.js rendering and ASM Box2D.js for physics.",
   "main": "elements/game-world.html",
   "keywords": [
     "game",
