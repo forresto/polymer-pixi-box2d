@@ -1,0 +1,177 @@
+<polymer-element name="game-world" attributes="width height yaccel xaccel debug">
+  <template>
+    <div id="renderer"></div>
+    <content></content>
+    <div id="debug">
+      <p>Box2d.js step time: <span id="debugPhysicsTime"></span></p>
+      <p>Box2d.js body count: <span id="debugPhysicsBodyCount"></span></p>
+      <p>Pixi.js render time: <span id="debugRenderTime"></span></p>
+      <p>Total FPS: <span id="debugFPS"></span></p>
+    </div>
+  </template>
+
+  <script src="../bower_components/box2d.js/box2d.js"></script>
+  <script src="../bower_components/box2d.js/html5canvas_demo/embox2d-helpers.js"></script>
+  <script src="../bower_components/pixi.js/bin/pixi.js"></script>
+
+  <style>
+    game-world {
+      position: relative;
+      overflow: hidden;
+      width: 500px;
+      height: 500px;
+    }
+    game-entity {
+      display: none;
+    }
+    game-world #renderer {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    game-world #debug {
+      color: white;
+      display: none;
+    }
+  </style>
+
+  <script>
+  (function () {
+    "use strict";
+
+    // Set up box2d
+    using(Box2D, "b2.+");
+
+    Polymer('game-world', {
+      width: 500,
+      height: 500,
+      size: null,
+      yaccel: 9.8,
+      xaccel: 0,
+      entities: null,
+      debug: false,
+      ready: function () {
+        this.entities = [];
+        this.size = [this.width, this.height];
+
+        //
+        // Set up box2d.js physics world
+        //
+
+        // Make world
+        var doSleep = true;
+        this.physics = new b2World( new b2Vec2(this.xaccel, this.yaccel), doSleep );
+
+        // Listen to collisions
+        var listener = new b2ContactListener();
+        Box2D.customizeVTable(listener, [{
+          original: Box2D.b2ContactListener.prototype.BeginContact,
+          replacement:
+            function (thsPtr, contactPtr) {
+              var contact = Box2D.wrapPointer( contactPtr, b2Contact );
+              var fixtureA = contact.GetFixtureA();
+              var fixtureB = contact.GetFixtureB();
+
+              this.fireCollision(fixtureA, fixtureB);
+            }.bind(this)
+        }])
+        this.physics.SetContactListener( listener );
+
+        window.b = this.physics;
+
+        //
+        // Set up pixi.js renderer
+        //
+
+        this.renderer = new PIXI.WebGLRenderer(this.size[0], this.size[1]);
+        this.$.renderer.appendChild( this.renderer.view );
+        // Make main stage
+        this.stage = new PIXI.Stage();
+        // Animation loop
+        requestAnimationFrame(animate.bind(this));
+
+        // Debug variables
+        var lastFrame = 0;
+        var debugPhysicsTimeAvg = 0;
+        var debugRenderTimeAvg = 0;
+        var debugFPSAvg = 0;
+        var debugPhysicsBodyCount = 0;
+
+        function animate() {
+          if (this.debug) { var physicsStart = Date.now(); }
+          // Step physics world
+          this.physics.Step(1/60, 3, 2);
+          if (this.debug) { var physicsTime = Date.now() - physicsStart; }
+
+          // Step all child entities
+          if (this.debug) { var renderStart = Date.now(); }
+          var len = this.entities.length;
+          for (var i=0; i<len; i++) {
+            var node = this.entities[i];
+            if (node.step) {
+              node.step();
+            }
+          }
+
+          // Render pixi.js
+          this.renderer.render(this.stage);
+          if (this.debug) { 
+            var now = Date.now();
+            var renderTime = now - renderStart; 
+
+            debugPhysicsTimeAvg = debugPhysicsTimeAvg + physicsTime/10 - debugPhysicsTimeAvg/10;
+            debugRenderTimeAvg = debugRenderTimeAvg + renderTime/10 - debugRenderTimeAvg/10;
+            var fps = 1000/(now-lastFrame);
+            debugFPSAvg = debugFPSAvg + fps/10 - debugFPSAvg/10;
+
+            this.$.debugPhysicsTime.textContent = Math.floor( debugPhysicsTimeAvg );
+            if (this.entities.length != debugPhysicsBodyCount) {
+              debugPhysicsBodyCount = this.entities.length;
+              this.$.debugPhysicsBodyCount.textContent = debugPhysicsBodyCount;
+            }
+            this.$.debugRenderTime.textContent = Math.floor( debugRenderTimeAvg );
+            this.$.debugFPS.textContent = Math.floor( debugFPSAvg );
+
+            lastFrame = now;
+          }
+
+          // Loop
+          requestAnimationFrame(animate.bind(this));
+        }
+      },
+      addEntity: function (el) {
+        this.entities.push(el);
+      },
+      removeEntity: function (el) {
+        var index = this.entities.indexOf(el);
+        if (index > -1) {
+          this.entities.splice(index, 1);
+        }
+      },
+      fireCollision: function (fixtureA, fixtureB) {
+        var a = fixtureA.GetBody();
+        var b = fixtureB.GetBody();
+
+        if (a && b && a.el && b.el) {
+          a.el.fire("collision", b.el);
+          b.el.fire("collision", a.el);
+        }
+      },
+      sizeChanged: function () {
+      },
+      widthChanged: function () {
+        this.style.width = this.width + "px";
+        this.size[0] = parseInt(this.width, 10);
+      },
+      heightChanged: function () {
+        this.style.height = this.height + "px";
+        this.size[1] = parseInt(this.height, 10);
+      },
+      debugChanged: function () {
+        this.$.debug.style.display = this.debug ? "block" : "none";
+      }
+    });
+
+  })()
+  </script>
+</polymer-element>

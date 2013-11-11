@@ -1,0 +1,253 @@
+<polymer-element name="game-entity" attributes="width height x y rotation xvelocity yvelocity avelocity xaccel yaccel aaccel circle fixed interactive texture tile density friction restitution dom movable" lightdom>
+  <template>
+  </template>
+
+  <script src="../bower_components/pixi.js/bin/pixi.js"></script>
+
+  <style>
+    game-entity {
+      display: none;
+    }
+
+    game-entity.dom {
+      display: block;
+      position: absolute;
+    }
+  </style>
+
+  <script>
+  (function () {
+    "use strict";
+
+    var TAU = Math.PI*2;
+    // Pixels per meter
+    var PPM = 30;
+
+    var transform = function (el, x, y, rotation) {
+      if (rotation === undefined || Math.abs(rotation) < 0.00000001) { 
+        rotation = 0; 
+      }
+      var move = "translate3d("+x+"px,"+y+"px,0px) rotate("+rotation+"rad)";
+      
+      // TODO prefix test
+      el.style.webkitTransform = move;
+      el.style.MozTransform = move;
+      el.style.msTransform = move;
+      el.style.OTransform = move;
+      el.style.transform = move;
+    }
+
+    Polymer('game-entity', {
+      width: 26,
+      width2: 13,
+      height: 37,
+      height2: 18,
+      padding: -5,
+      x: 0,
+      y: 0,
+      position: [],
+      rotation: 0,
+      xvelocity: 0,
+      yvelocity: 0,
+      avelocity: 0,
+      xaccel: 0,
+      yaccel: 0,
+      aaccel: 0,
+      ellipse: false,
+      fixed: false,
+      interactive: false,
+      texture: "/elements/bunny.png",
+      tile: false,
+      physics: null,
+      sprite: null,
+      density: 20.0,
+      friction: 0.5,
+      restitution: 0.5,
+      dom: false,
+      movable: false,
+      ready: function () {
+        this.position = [this.x, this.y];
+        this.width2 = Math.floor(this.width/2);
+        this.height2 = Math.floor(this.height/2);
+        // Test collision listener
+        // this.addEventListener("collision", function(event){
+        //   console.log(this.id, "hit", event.detail.id);
+        // }.bind(this));
+      },
+      enteredView: function () {
+        this.world = this.parentNode;
+        if (!this.world || !this.world.stage) { 
+          setTimeout(this.enteredView.bind(this), 500);
+          return; 
+        };
+        this.worldReady();
+        this.world.addEntity(this);
+
+        // Make a dom element if needed
+        if (this.dom || this.movable) {
+          this.classList.add("dom");
+          this.style.width = this.width+"px";
+          this.style.height = this.height+"px";
+          if (this.tile) {
+            this.style.backgroundImage = "url("+this.texture+")";
+          }
+          transform(this, this.x-this.width2, this.y-this.height2, this.rotation*TAU);
+        }
+
+        // Movable
+        if (this.movable) {
+          // this.setAttribute("touch-action", "none");
+          // this.addEventListener("track", function (event) {
+          //   if (!this.physics) { return; }
+          //   // Current position
+          //   var pos = this.physics.GetPosition();
+          //   // Move by track delta
+          //   var x = pos.get_x() + event.ddx/PPM;
+          //   var y = pos.get_y() + event.ddy/PPM;
+          //   var a = this.physics.GetAngle();
+          //   // Apply
+          //   this.physics.SetTransform( new b2Vec2(x, y), a );
+          // }.bind(this));
+        }
+      },
+      leftView: function () {
+        // Remove from world element
+        if (this.world) {
+          this.world.removeEntity(this);
+        }
+        // Remove from physics world
+        if (this.world && this.physics) {
+          this.world.DestroyBody( this.physics );
+        }
+        // Remove from renderer
+        if (this.sprite && this.sprite.parent) { 
+          this.sprite.parent.removeChild( this.sprite );
+        }
+      },
+      worldReady: function () {
+        //
+        // Add to physics world
+        //
+
+        var shape = new b2PolygonShape();
+        shape.SetAsBox( (this.width+this.padding)/PPM/2, (this.height+this.padding)/PPM/2 );        
+
+        var fixture = new b2FixtureDef();
+        fixture.set_shape( shape );
+        fixture.set_density( this.density );
+        fixture.set_friction( this.friction );
+        fixture.set_restitution( this.restitution );
+        // fixture.set_userData( this );
+        this.fixture = fixture;
+
+        var bodyDef = new b2BodyDef();
+        if (!this.fixed) {
+          bodyDef.set_type( b2_dynamicBody );
+        }
+        bodyDef.set_position( new b2Vec2(this.x/PPM, this.y/PPM) );
+        bodyDef.set_linearVelocity( new b2Vec2(this.xvelocity/PPM, this.yvelocity/PPM) );
+        bodyDef.set_angle( this.rotation * TAU );
+        bodyDef.set_angularVelocity( this.avelocity * TAU );
+        var body = this.world.physics.CreateBody( bodyDef );
+        body.CreateFixture(fixture);
+        this.physics = body;
+
+        // Reference back to this for collisions
+        body.el = this;
+
+        //
+        // Add to renderer
+        //
+
+        if (!this.dom) {
+          var texture = new PIXI.Texture.fromImage( this.texture );
+          var sprite = new PIXI.Sprite( texture );
+          sprite.anchor.x = 0.5;
+          sprite.anchor.y = 0.5;
+          // Initial position
+          sprite.position.x = this.x;
+          sprite.position.y = this.y;
+          // Center anchor
+          sprite.width = this.width;
+          sprite.height = this.height;
+          sprite.rotation = this.rotation * TAU;
+          sprite.interactive = this.interactive;
+          this.world.stage.addChild(sprite);
+
+          this.sprite = sprite;
+        }
+
+      },
+      textureChanged: function () {
+        if (!this.sprite) { return; }
+        var texture = new PIXI.Texture.fromImage( this.texture );
+        this.sprite.setTexture( texture );
+        this.sprite.width = this.width;
+        this.sprite.height = this.height;
+      },
+      widthChanged: function () {
+        this.width2 = Math.floor(this.width/2);
+        if (!this.sprite) { return; }
+        this.sprite.width = this.width;
+      },
+      heightChanged: function () {
+        this.height2 = Math.floor(this.height/2);
+        if (!this.sprite) { return; }
+        this.sprite.height = this.height;
+      },
+      rotationChanged: function () {
+        if (!this.sprite) { return; }
+        // Translates % to radians, clockwise
+        this.sprite.rotation = this.rotation * TAU;
+      },
+      interactiveChanged: function () {
+        if (!this.sprite) { return; }
+        this.sprite.interactive = this.interactive;
+      },
+      impulseY: function (amount) {
+        if (!this.physics) { return; }
+        // var angle = this.physics.GetAngle();
+        // this.physics.ApplyLinearImpulse( new b2Vec2(Math.cos(angle)*amount, Math.sin(angle)*amount), this.physics.GetWorldCenter() );
+        this.physics.ApplyLinearImpulse( new b2Vec2(0, amount/PPM), this.physics.GetWorldCenter() );
+      },
+      impulseX: function (amount) {
+        if (!this.physics) { return; }
+        this.physics.ApplyLinearImpulse( new b2Vec2(amount/PPM, 0), this.physics.GetWorldCenter() );
+      },
+      impulseAngle: function (amount) {
+        if (!this.physics) { return; }
+        this.physics.ApplyAngularImpulse( amount * TAU );
+      },
+      step: function () {
+        if (!this.physics || this.fixed) { return; }
+
+        var pos = this.physics.GetPosition();
+        var x = pos.get_x()*PPM;
+        var y = pos.get_y()*PPM;
+        var a = this.physics.GetAngle();
+
+        if (this.sprite) {
+          this.sprite.position.x = x;
+          this.sprite.position.y = y;
+          this.sprite.rotation = a;
+        }
+
+        if (this.dom || this.movable) {
+          transform(this, x-this.width2, y-this.height2, a);
+        }
+
+        // Delete far-gone
+        // if (this.sprite.position.y > this.world.height*3) {
+        //   this.parentNode.removeChild(this);
+        // }
+
+        // Update attributes
+        // this.x = this.sprite.position.x;
+        // this.y = this.sprite.position.y;
+        // this.rotation = this.sprite.rotation;
+      }
+    });
+
+  })()
+  </script>
+</polymer-element>

@@ -1,0 +1,35 @@
+{
+  "name": "polymer-pixi-box2d",
+  "version": "0.0.0",
+  "authors": [
+    "Forrest Oliphant <forrest@sembiki.com>"
+  ],
+  "description": "A simple game library to use polymer custom elements as a scene graph with pixi.js rendering and asm box2d.js for physics",
+  "main": "elements/game-world.html",
+  "keywords": [
+    "game",
+    "js",
+    "canvas",
+    "webgl",
+    "pixi",
+    "physics",
+    "box2d",
+    "polymer",
+    "scenegraph"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/forresto/polymer-pixi-box2d",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "~0.0.20131107",
+    "box2d.js": "kripken/box2d.js",
+    "pixi.js": "GoodBoyDigital/pixi.js#~1.3.0",
+    "mousetrap": "ccampbell/mousetrap#~1.4.5"
+  }
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>Polymer + Pixi.js + asm Box2d.js demo</title>
+    <meta charset="utf-8">
+    <script src="../bower_components/polymer/polymer.min.js"></script>
+
+    <link rel="import" href="elements/game-world.html">
+    <link rel="import" href="elements/game-entity.html">
+    <link rel="import" href="elements/game-keybinding.html">
+
+    <style>
+      body {
+        background-color: #1d1d1d;
+      }
+      game-world {
+        background-color: black;
+      }
+    </style>
+
+  </head>
+  <body>
+
+    <game-world id="world" width="800" height="600" friction="0" yaccel="9.8" xaccel="0" debug>
+
+      <!-- 
+        fixed: means that the floor will stay put 
+        dom: render html instead of pixi webgl for this element 
+        tile: tile the texture image 
+      -->
+      <game-entity id="floor" fixed x="400" y="600" width="600" height="50" restitution="0.5" texture="elements/bunny.png" tile dom></game-entity>
+
+      <!-- yvelocity: start moving up -->
+      <game-entity id="character1" circle x="400" y="100" width="15" height="15" xvelocity="0" yvelocity="-200" rotation="0.7" texture="elements/bunny.png"></game-entity>
+      <!-- avelocity: start with some angular velocity -->
+      <game-entity id="character2" circle x="400" y="200" width="25" height="25" xvelocity="0" yvelocity="0" avelocity="1" rotation="0.3" texture="elements/bunny.png"></game-entity>
+      <game-entity id="character3" circle x="400" y="300" width="25" height="35" xvelocity="0" yvelocity="0" rotation="0.25" texture="elements/bunny.png"></game-entity>
+      <game-entity id="character4" circle x="400" y="400" width="50" height="50" xvelocity="0" yvelocity="0" rotation="0.05" texture="elements/bunny.png" movable>
+        <!-- 
+          This particular bunny is keyboard-controllable
+          key: "w,up" = bind to w and up
+              "shift+a" = key combination
+              "up up down down" = key sequence
+          attribute: if a function, call it with amount
+              otherwise, setAttribute(attribute, amount) 
+        -->
+        <game-keybinding press="keydown" key="w,up"    attribute="impulseY" amount="-2000"></game-keybinding>
+        <game-keybinding press="keydown" key="s,down"  attribute="impulseY" amount="2000"></game-keybinding>
+        <game-keybinding press="keydown" key="a,left"  attribute="impulseX" amount="-2000"></game-keybinding>
+        <game-keybinding press="keydown" key="d,right" attribute="impulseX" amount="2000"></game-keybinding>
+        <!--
+        <game-keybinding press="keydown" key="a,left"  attribute="impulseAngle" amount="-10"></game-keybinding>
+        <game-keybinding press="keydown" key="d,right" attribute="impulseAngle" amount="10"></game-keybinding>
+        -->
+      </game-entity>
+      <game-entity id="character5" circle x="400" y="500" width="10" height="10" xvelocity="0" yvelocity="0" rotation="0" texture="elements/bunny.png"></game-entity>
+
+    </game-world>
+
+
+    <script>
+      window.addEventListener('WebComponentsReady', function () {
+
+        var world = document.getElementById("world");
+
+        // Add a bunch
+        var count = 0;
+        var rainBunnies = setInterval( function(){
+          var bunny = document.createElement("game-entity");
+          bunny.setAttribute("x", Math.random()*world.width);
+          bunny.setAttribute("y", 100);
+          world.appendChild(bunny);
+          count++;
+          if (count > 100) {
+            clearInterval(rainBunnies);
+          }
+        },100);
+
+      });
+    </script>
+
+  </body>
+</html>

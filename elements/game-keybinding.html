@@ -1,0 +1,42 @@
+<polymer-element name="game-keybinding" attributes="press key attribute amount" lightdom>
+
+  <script src="../bower_components/mousetrap/mousetrap.min.js"></script>
+
+  <script>
+  (function () {
+    "use strict";
+
+    Polymer('game-keybinding', {
+      press: "keypress",
+      key: null,
+      attribute: null,
+      amount: null,
+      applyTo: null,
+      ready: function () {
+      },
+      enteredView: function () {
+        this.applyTo = this.parentNode;
+
+        var keys = this.key.split(",");
+
+        Mousetrap.bind(keys, this.doAction.bind(this), this.press);
+      },
+      doAction: function (event) {
+        if (!this.applyTo || !this.attribute || !this.amount) { return false; }
+        event.preventDefault();
+        if ( typeof this.applyTo[this.attribute] === "function" ) {
+          this.applyTo[this.attribute](this.amount);
+        }
+        else {
+          this.applyTo.setAttribute(this.attribute, this.amount);
+        }
+        return false;
+      },
+      leftView: function () {
+        Mousetrap.unbind(null, this.doAction);
+      }
+    });
+
+  })()
+  </script>
+</polymer-element>
