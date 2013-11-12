@@ -1,4 +1,4 @@
-<polymer-element name="game-world" attributes="width height yaccel xaccel debug renderer">
+<polymer-element name="game-world" attributes="width height yaccel xaccel debug renderer ppm">
   <template>
     <div id="renderer"></div>
     <content></content>
@@ -48,9 +48,6 @@
     // Set up box2d
     using(Box2D, "b2.+");
 
-    // Pixels per meter
-    var PPM = 30;
-
     Polymer('game-world', {
       width: 500,
       height: 500,
@@ -60,6 +57,7 @@
       entities: null,
       debug: false,
       renderer: "auto",
+      ppm: 30,
       ready: function () {
         this.entities = [];
         this.size = [this.width, this.height];
@@ -70,7 +68,7 @@
 
         // Make world
         var doSleep = true;
-        this.physics = new b2World( new b2Vec2(this.xaccel/PPM, this.yaccel/PPM), doSleep );
+        this.physics = new b2World( new b2Vec2(this.xaccel/this.ppm, this.yaccel/this.ppm), doSleep );
 
         // Listen to collisions
         var listener = new b2ContactListener();

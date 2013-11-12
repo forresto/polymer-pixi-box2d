@@ -20,8 +20,6 @@
     "use strict";
 
     var TAU = Math.PI*2;
-    // Pixels per meter
-    var PPM = 30;
 
     var transform = function (el, x, y, rotation) {
       if (rotation === undefined || Math.abs(rotation) < 0.00000001) { 
@@ -66,6 +64,7 @@
       dom: false,
       movable: false,
       circle: false,
+      ppm: 30, // Pixels per meter
       ready: function () {
         this.position = [this.x, this.y];
         this.width2 = Math.floor(this.width/2);
@@ -81,6 +80,7 @@
           setTimeout(this.enteredView.bind(this), 500);
           return; 
         };
+        this.ppm = this.world.ppm;
         this.worldReady();
         this.world.addEntity(this);
 
@@ -103,8 +103,8 @@
           //   // Current position
           //   var pos = this.physics.GetPosition();
           //   // Move by track delta
-          //   var x = pos.get_x() + event.ddx/PPM;
-          //   var y = pos.get_y() + event.ddy/PPM;
+          //   var x = pos.get_x() + event.ddx/this.ppm;
+          //   var y = pos.get_y() + event.ddy/this.ppm;
           //   var a = this.physics.GetAngle();
           //   // Apply
           //   this.physics.SetTransform( new b2Vec2(x, y), a );
@@ -131,8 +131,8 @@
         //
 
         var shape;
-        var w = (this.width+this.padding) / PPM / 2;
-        var h = (this.height+this.padding) / PPM / 2;
+        var w = (this.width+this.padding) / this.ppm / 2;
+        var h = (this.height+this.padding) / this.ppm / 2;
         if (this.circle) {
           // Circle
           shape = new b2CircleShape();
@@ -157,8 +157,8 @@
         if (!this.fixed) {
           bodyDef.set_type( b2_dynamicBody );
         }
-        bodyDef.set_position( new b2Vec2(this.x/PPM, this.y/PPM) );
-        bodyDef.set_linearVelocity( new b2Vec2(this.xvelocity/PPM, this.yvelocity/PPM) );
+        bodyDef.set_position( new b2Vec2(this.x/this.ppm, this.y/this.ppm) );
+        bodyDef.set_linearVelocity( new b2Vec2(this.xvelocity/this.ppm, this.yvelocity/this.ppm) );
         bodyDef.set_angle( this.rotation * TAU );
         bodyDef.set_angularVelocity( this.avelocity * TAU );
         var body = this.world.physics.CreateBody( bodyDef );
@@ -235,8 +235,8 @@
         if (!this.physics || this.fixed) { return; }
 
         var pos = this.physics.GetPosition();
-        var x = pos.get_x()*PPM;
-        var y = pos.get_y()*PPM;
+        var x = pos.get_x()*this.ppm;
+        var y = pos.get_y()*this.ppm;
         var a = this.physics.GetAngle();
 
         if (this.sprite) {
