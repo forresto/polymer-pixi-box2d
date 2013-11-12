@@ -1,0 +1,69 @@
+<polymer-element name="game-world" attributes="width height yaccel xaccel debug" assetpath="/">
+  <template>
+    <div id="renderer"></div>
+    <content></content>
+    <div id="debug">
+      <p>Box2d.js step time: <span id="debugPhysicsTime"></span></p>
+      <p>Box2d.js body count: <span id="debugPhysicsBodyCount"></span></p>
+      <p>Pixi.js render time: <span id="debugRenderTime"></span></p>
+      <p>Total FPS: <span id="debugFPS"></span></p>
+    </div>
+  </template>
+
+  
+  
+  
+
+  <style>
+    game-world {
+      position: relative;
+      overflow: hidden;
+      width: 500px;
+      height: 500px;
+    }
+    game-entity {
+      display: none;
+    }
+    game-world #renderer {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    game-world #debug {
+      color: white;
+      display: none;
+    }
+  </style>
+
+  
+</polymer-element>
+<polymer-element name="game-entity" attributes="width height x y rotation xvelocity yvelocity avelocity xaccel yaccel aaccel circle fixed interactive texture tile density friction restitution dom movable" lightdom="" assetpath="/">
+  <template>
+  </template>
+
+  
+
+  <style>
+    game-entity {
+      display: none;
+    }
+
+    game-entity.dom {
+      display: block;
+      position: absolute;
+    }
+  </style>
+
+  
+</polymer-element>
+<polymer-element name="game-keybinding" attributes="press key attribute amount" lightdom="" assetpath="/">
+
+  
+
+  
+</polymer-element>
+
+
+
+<script src="vulcanized.js"></script>
+
