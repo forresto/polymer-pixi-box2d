@@ -1,4 +1,4 @@
-<polymer-element name="game-world" attributes="width height yaccel xaccel debug" assetpath="/">
+<polymer-element name="game-world" attributes="width height yaccel xaccel debug renderer ppm" assetpath="../elements/">
   <template>
     <div id="renderer"></div>
     <content></content>
@@ -16,6 +16,7 @@
 
   <style>
     game-world {
+      display: inline-block;
       position: relative;
       overflow: hidden;
       width: 500px;
@@ -30,6 +31,11 @@
       left: 0;
     }
     game-world #debug {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-family: verdana;
+      font-size: 10px;
       color: white;
       display: none;
     }
@@ -37,7 +43,7 @@
 
   
 </polymer-element>
-<polymer-element name="game-entity" attributes="width height x y rotation xvelocity yvelocity avelocity xaccel yaccel aaccel circle fixed interactive texture tile density friction restitution dom movable" lightdom="" assetpath="/">
+<polymer-element name="game-entity" attributes="width height x y rotation xvelocity yvelocity avelocity xaccel yaccel aaccel circle fixed interactive texture tile density friction restitution dom movable padding" lightdom="" assetpath="../elements/">
   <template>
   </template>
 
@@ -56,7 +62,7 @@
 
   
 </polymer-element>
-<polymer-element name="game-keybinding" attributes="press key attribute amount" lightdom="" assetpath="/">
+<polymer-element name="key-binding" attributes="press key attribute amount" lightdom="" assetpath="../elements/">
 
   
 
@@ -65,5 +71,5 @@
 
 
 
-<script src="vulcanized.js"></script>
+<script src="polymer-pixi-box2d.js"></script>
 

@@ -657,6 +657,8 @@ function createRandomPolygonShape(radius) {
       xaccel: 0,
       entities: null,
       debug: false,
+      renderer: "auto",
+      ppm: 30,
       ready: function () {
         this.entities = [];
         this.size = [this.width, this.height];
@@ -667,7 +669,7 @@ function createRandomPolygonShape(radius) {
 
         // Make world
         var doSleep = true;
-        this.physics = new b2World( new b2Vec2(this.xaccel, this.yaccel), doSleep );
+        this.physics = new b2World( new b2Vec2(this.xaccel/this.ppm, this.yaccel/this.ppm), doSleep );
 
         // Listen to collisions
         var listener = new b2ContactListener();
@@ -684,14 +686,27 @@ function createRandomPolygonShape(radius) {
         }])
         this.physics.SetContactListener( listener );
 
-        window.b = this.physics;
-
         //
         // Set up pixi.js renderer
         //
 
-        this.renderer = new PIXI.WebGLRenderer(this.size[0], this.size[1]);
-        this.$.renderer.appendChild( this.renderer.view );
+        // Renderer
+        var rend;
+        switch (this.renderer) {
+          case "webgl":
+            rend = new PIXI.WebGLRenderer(this.size[0], this.size[1]);
+            break;
+          case "canvas":
+            rend = new PIXI.CanvasRenderer(this.size[0], this.size[1]);
+            break;
+          case "auto":
+          default:
+            rend = PIXI.autoDetectRenderer(this.size[0], this.size[1]);
+            break;
+        }
+        this.rend = rend;
+
+        this.$.renderer.appendChild( this.rend.view );
         // Make main stage
         this.stage = new PIXI.Stage();
         // Animation loop
@@ -721,7 +736,7 @@ function createRandomPolygonShape(radius) {
           }
 
           // Render pixi.js
-          this.renderer.render(this.stage);
+          this.rend.render(this.stage);
           if (this.debug) { 
             var now = Date.now();
             var renderTime = now - renderStart; 
@@ -801,8 +816,6 @@ function createRandomPolygonShape(radius) {
     "use strict";
 
     var TAU = Math.PI*2;
-    // Pixels per meter
-    var PPM = 30;
 
     var transform = function (el, x, y, rotation) {
       if (rotation === undefined || Math.abs(rotation) < 0.00000001) { 
@@ -823,7 +836,7 @@ function createRandomPolygonShape(radius) {
       width2: 13,
       height: 37,
       height2: 18,
-      padding: -5,
+      padding: -4,
       x: 0,
       y: 0,
       position: [],
@@ -846,6 +859,8 @@ function createRandomPolygonShape(radius) {
       restitution: 0.5,
       dom: false,
       movable: false,
+      circle: false,
+      ppm: 30, // Pixels per meter
       ready: function () {
         this.position = [this.x, this.y];
         this.width2 = Math.floor(this.width/2);
@@ -861,6 +876,7 @@ function createRandomPolygonShape(radius) {
           setTimeout(this.enteredView.bind(this), 500);
           return; 
         };
+        this.ppm = this.world.ppm;
         this.worldReady();
         this.world.addEntity(this);
 
@@ -883,8 +899,8 @@ function createRandomPolygonShape(radius) {
           //   // Current position
           //   var pos = this.physics.GetPosition();
           //   // Move by track delta
-          //   var x = pos.get_x() + event.ddx/PPM;
-          //   var y = pos.get_y() + event.ddy/PPM;
+          //   var x = pos.get_x() + event.ddx/this.ppm;
+          //   var y = pos.get_y() + event.ddy/this.ppm;
           //   var a = this.physics.GetAngle();
           //   // Apply
           //   this.physics.SetTransform( new b2Vec2(x, y), a );
@@ -910,9 +926,21 @@ function createRandomPolygonShape(radius) {
         // Add to physics world
         //
 
-        var shape = new b2PolygonShape();
-        shape.SetAsBox( (this.width+this.padding)/PPM/2, (this.height+this.padding)/PPM/2 );        
+        var shape;
+        var w = (this.width+this.padding) / this.ppm / 2;
+        var h = (this.height+this.padding) / this.ppm / 2;
+        if (this.circle) {
+          // Circle
+          shape = new b2CircleShape();
+          shape.set_m_radius( Math.max(w,h) );
+        } else {
+          // Box
+          shape = new b2PolygonShape();
+          shape.SetAsBox(w, h);
+        }
+        // Composite
 
+        // Fixture
         var fixture = new b2FixtureDef();
         fixture.set_shape( shape );
         fixture.set_density( this.density );
@@ -925,8 +953,8 @@ function createRandomPolygonShape(radius) {
         if (!this.fixed) {
           bodyDef.set_type( b2_dynamicBody );
         }
-        bodyDef.set_position( new b2Vec2(this.x/PPM, this.y/PPM) );
-        bodyDef.set_linearVelocity( new b2Vec2(this.xvelocity/PPM, this.yvelocity/PPM) );
+        bodyDef.set_position( new b2Vec2(this.x/this.ppm, this.y/this.ppm) );
+        bodyDef.set_linearVelocity( new b2Vec2(this.xvelocity/this.ppm, this.yvelocity/this.ppm) );
         bodyDef.set_angle( this.rotation * TAU );
         bodyDef.set_angularVelocity( this.avelocity * TAU );
         var body = this.world.physics.CreateBody( bodyDef );
@@ -1003,8 +1031,8 @@ function createRandomPolygonShape(radius) {
         if (!this.physics || this.fixed) { return; }
 
         var pos = this.physics.GetPosition();
-        var x = pos.get_x()*PPM;
-        var y = pos.get_y()*PPM;
+        var x = pos.get_x()*this.ppm;
+        var y = pos.get_y()*this.ppm;
         var a = this.physics.GetAngle();
 
         if (this.sprite) {
@@ -1045,7 +1073,7 @@ b[d[e].seq]=1,x(d[e].callback,c,d[e].combo)):g||x(d[e].callback,c,d[e].combo);d=
   (function () {
     "use strict";
 
-    Polymer('game-keybinding', {
+    Polymer('key-binding', {
       press: "keypress",
       key: null,
       attribute: null,
