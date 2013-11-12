@@ -65,6 +65,7 @@
       restitution: 0.5,
       dom: false,
       movable: false,
+      circle: false,
       ready: function () {
         this.position = [this.x, this.y];
         this.width2 = Math.floor(this.width/2);
@@ -129,9 +130,21 @@
         // Add to physics world
         //
 
-        var shape = new b2PolygonShape();
-        shape.SetAsBox( (this.width+this.padding)/PPM/2, (this.height+this.padding)/PPM/2 );        
+        var shape;
+        var w = (this.width+this.padding) / PPM / 2;
+        var h = (this.height+this.padding) / PPM / 2;
+        if (this.circle) {
+          // Circle
+          shape = new b2CircleShape();
+          shape.set_m_radius( Math.max(w,h) );
+        } else {
+          // Box
+          shape = new b2PolygonShape();
+          shape.SetAsBox(w, h);
+        }
+        // Composite
 
+        // Fixture
         var fixture = new b2FixtureDef();
         fixture.set_shape( shape );
         fixture.set_density( this.density );
