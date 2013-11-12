@@ -62,7 +62,6 @@
 
     </game-world>
 
-
     <script>
       window.addEventListener('WebComponentsReady', function () {
 
@@ -72,7 +71,7 @@
 
         // Add a bunch
         var count = 0;
-        var rainBunnies = setInterval( function(){
+        var rainBunnies = setInterval( function () {
           var bunny = document.createElement("game-entity");
           bunny.setAttribute("x", Math.random()*world.width);
           bunny.setAttribute("y", 100);
