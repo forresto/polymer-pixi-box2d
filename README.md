@@ -17,7 +17,7 @@ Sample Use
     restitution="0.5" texture="elements/bunny.png" tile dom padding="3">
     </game-entity>
   <!-- Main character -->
-  <game-entity id="character4" circle x="400" y="400" width="50" height="50" 
+  <game-entity id="character" circle x="400" y="400" width="50" height="50" 
     xvelocity="0" yvelocity="0" rotation="0.05" texture="elements/bunny.png">
     <!-- 
       This particular bunny is keyboard-controllable
@@ -38,6 +38,17 @@ Sample Use
   </game-entity>
 </game-world>
 
+```
+
+Collision events
+----------
+
+```javascript
+var character = document.getElementById("character");
+character.addEventListener("collide", function(event){
+  var whatHit = event.detail;
+  console.log(charcter, "collided with", whatHit);
+});
 ```
 
 Todo
