@@ -22,7 +22,7 @@
   </head>
   <body>
 
-    <game-world id="world" width="800" height="600" friction="0" yaccel="9.8" xaccel="0" debug>
+    <game-world id="world" width="800" height="600" friction="0" yaccel="294" xaccel="0" debug>
 
       <!-- 
         fixed: means that the floor will stay put 
@@ -30,7 +30,7 @@
         tile: tile the texture image 
         x & y: centered
       -->
-      <game-entity id="floor" fixed x="400" y="600" width="600" height="50" restitution="0.5" texture="elements/bunny.png" tile dom></game-entity>
+      <game-entity id="floor" fixed x="400" y="600" width="600" height="50" restitution="0.5" texture="elements/bunny.png" tile dom padding="0"></game-entity>
 
       <!-- bunnies disappear when they touch this one -->
       <game-entity id="underworld" fixed x="400" y="800" width="2000" height="50" restitution="0.5"></game-entity>
@@ -67,6 +67,8 @@
       window.addEventListener('WebComponentsReady', function () {
 
         var world = document.getElementById("world");
+
+        window.w = world;
 
         // Add a bunch
         var count = 0;

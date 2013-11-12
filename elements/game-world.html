@@ -1,4 +1,4 @@
-<polymer-element name="game-world" attributes="width height yaccel xaccel debug">
+<polymer-element name="game-world" attributes="width height yaccel xaccel debug renderer">
   <template>
     <div id="renderer"></div>
     <content></content>
@@ -42,6 +42,9 @@
     // Set up box2d
     using(Box2D, "b2.+");
 
+    // Pixels per meter
+    var PPM = 30;
+
     Polymer('game-world', {
       width: 500,
       height: 500,
@@ -50,6 +53,7 @@
       xaccel: 0,
       entities: null,
       debug: false,
+      renderer: "auto",
       ready: function () {
         this.entities = [];
         this.size = [this.width, this.height];
@@ -60,7 +64,7 @@
 
         // Make world
         var doSleep = true;
-        this.physics = new b2World( new b2Vec2(this.xaccel, this.yaccel), doSleep );
+        this.physics = new b2World( new b2Vec2(this.xaccel/PPM, this.yaccel/PPM), doSleep );
 
         // Listen to collisions
         var listener = new b2ContactListener();
@@ -77,14 +81,27 @@
         }])
         this.physics.SetContactListener( listener );
 
-        window.b = this.physics;
-
         //
         // Set up pixi.js renderer
         //
 
-        this.renderer = new PIXI.WebGLRenderer(this.size[0], this.size[1]);
-        this.$.renderer.appendChild( this.renderer.view );
+        // Renderer
+        var rend;
+        switch (this.renderer) {
+          case "webgl":
+            rend = new PIXI.WebGLRenderer(this.size[0], this.size[1]);
+            break;
+          case "canvas":
+            rend = new PIXI.CanvasRenderer(this.size[0], this.size[1]);
+            break;
+          case "auto":
+          default:
+            rend = PIXI.autoDetectRenderer(this.size[0], this.size[1]);
+            break;
+        }
+        this.rend = rend;
+
+        this.$.renderer.appendChild( this.rend.view );
         // Make main stage
         this.stage = new PIXI.Stage();
         // Animation loop
@@ -114,7 +131,7 @@
           }
 
           // Render pixi.js
-          this.renderer.render(this.stage);
+          this.rend.render(this.stage);
           if (this.debug) { 
             var now = Date.now();
             var renderTime = now - renderStart; 
